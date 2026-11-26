@@ -22,6 +22,7 @@ concurrency:
   cancel-in-progress: true
 
 # The Android package embeds the upstream React application, not a parallel UI.
+# Compact screens close the navigation drawer after route changes.
 jobs:
   debug-apk:
     name: Build OpenJarvis Android app
