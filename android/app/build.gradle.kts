@@ -1,7 +1,32 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.plugin.compose")
+}
+
+val frontendDir = rootProject.projectDir.resolve("../frontend")
+
+val installFrontendDependencies by tasks.registering(Exec::class) {
+    workingDir(frontendDir)
+    commandLine("npm", "ci")
+    inputs.files(frontendDir.resolve("package.json"), frontendDir.resolve("package-lock.json"))
+    outputs.dir(frontendDir.resolve("node_modules"))
+}
+
+val buildMobileFrontend by tasks.registering(Exec::class) {
+    dependsOn(installFrontendDependencies)
+    workingDir(frontendDir)
+    commandLine(
+        "npm", "run", "build", "--",
+        "--outDir", "../android/app/src/main/assets/www",
+        "--base", "./"
+    )
+    inputs.dir(frontendDir.resolve("src"))
+    inputs.file(frontendDir.resolve("index.html"))
+    outputs.dir(projectDir.resolve("src/main/assets/www"))
+}
+
+tasks.named("preBuild") {
+    dependsOn(buildMobileFrontend)
 }
 
 android {
@@ -12,9 +37,8 @@ android {
         applicationId = "com.muhammed.jarvismobile"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        versionCode = 2
+        versionName = "0.2.0"
     }
 
     buildTypes {
@@ -34,22 +58,9 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
-    buildFeatures {
-        compose = true
-    }
 }
 
 dependencies {
-    val composeBom = platform("androidx.compose:compose-bom:2025.02.00")
-    implementation(composeBom)
-    androidTestImplementation(composeBom)
-    implementation("androidx.activity:activity-compose:1.10.1")
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.foundation:foundation")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    testImplementation("junit:junit:4.13.2")
+    implementation("androidx.activity:activity-ktx:1.10.1")
+    implementation("androidx.webkit:webkit:1.13.0")
 }
