@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Outlet, useNavigate } from 'react-router';
+import { Outlet, useLocation, useNavigate } from 'react-router';
 import { ApprovalBell } from './ApprovalBell';
 import { Sidebar } from './Sidebar/Sidebar';
 import { SystemPulse } from './SystemPulse';
@@ -23,6 +23,15 @@ export function Layout() {
   }, []);
 
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // On compact/mobile layouts the existing navigation is an overlay drawer.
+  // Start with it closed and close it after route selection.
+  useEffect(() => {
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      useAppStore.getState().setSidebarOpen(false);
+    }
+  }, [location.pathname]);
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden relative" style={{ paddingTop: '3px' }}>
