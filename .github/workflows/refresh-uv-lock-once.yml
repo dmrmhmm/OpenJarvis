@@ -1,0 +1,61 @@
+name: one-time uv lock refresh
+
+on:
+  push:
+    branches:
+      - dependabot/uv/python-minor-patch-1e0dd7dc54
+    paths:
+      - .github/workflows/refresh-uv-lock-once.yml
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: dependabot/uv/python-minor-patch-1e0dd7dc54
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10.4.0
+        with:
+          enable-cache: false
+      - name: Regenerate the lockfile from pyproject.toml
+        run: uv lock
+      - uses: actions/upload-artifact@v7
+        with:
+          name: refreshed-uv-lock
+          path: uv.lock
+          if-no-files-found: error
+
+  commit:
+    needs: resolve
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: dependabot/uv/python-minor-patch-1e0dd7dc54
+          persist-credentials: false
+      - uses: actions/download-artifact@v7
+        with:
+          name: refreshed-uv-lock
+          path: /tmp/refreshed
+      - name: Commit the regenerated lockfile
+        run: |
+          cp /tmp/refreshed/uv.lock uv.lock
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add uv.lock
+          if git diff --cached --quiet; then
+            echo "uv.lock already current"
+            exit 0
+          fi
+          git commit -m "fix(deps): refresh uv lockfile for Intel macOS cap"
+      - name: Push lockfile commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          AUTH="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git -c http.extraheader="AUTHORIZATION: basic $AUTH" push origin HEAD:refs/heads/dependabot/uv/python-minor-patch-1e0dd7dc54
