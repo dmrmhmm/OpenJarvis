@@ -21,6 +21,7 @@ concurrency:
   group: android-build-${{ github.ref }}
   cancel-in-progress: true
 
+# The Android package embeds the upstream React application, not a parallel UI.
 jobs:
   debug-apk:
     name: Build OpenJarvis Android app
