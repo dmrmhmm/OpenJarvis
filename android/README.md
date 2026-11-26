@@ -1,33 +1,47 @@
-# JARVIS Mobile
+# OpenJarvis Android
 
-Native Android client foundation for the OpenJarvis repository.
+Android wrapper for the **existing OpenJarvis frontend**. The mobile app packages the same React interface used by the desktop/web client instead of introducing a separate chat UI.
 
-## Current scope
+## Included interface
 
-- Native Kotlin + Jetpack Compose application.
-- Configurable OpenAI-compatible chat-completions endpoint.
-- User-selected model and optional bearer API key.
-- Non-streaming chat request/response flow.
-- No automatic connection, background execution, microphone access, or device-control permissions.
+- Existing OpenJarvis chat, message rendering, streaming, conversation history, model picker, and system pulse.
+- Existing navigation for Dashboard, Data Sources, Agents, Logs, and Settings.
+- Existing backend features are used through the OpenJarvis server API, subject to backend configuration and mobile browser support.
+- Frontend assets are built from `frontend/` and packaged into the APK.
+- Android WebView storage keeps the frontend's local preferences and conversation state on the device.
+
+## Connect to OpenJarvis
+
+1. Start the OpenJarvis server on your PC or another trusted host.
+2. Install and open the Android app.
+3. Open **Settings** in the existing OpenJarvis interface.
+4. Set **API URL** to the OpenJarvis server base address, for example `http://192.168.1.10:8000`.
+5. Save the setting and return to Chat.
+
+This is the OpenJarvis server URL, not a raw Ollama `/v1` endpoint. OpenJarvis connects to its configured inference provider and exposes the application API.
+
+The packaged WebView uses the origin `http://tauri.localhost`, which is already included in the server's default CORS allowlist. If `OPENJARVIS_CORS_ORIGINS` is explicitly configured, include `http://tauri.localhost` in that list.
 
 ## Build
 
-Requires JDK 17, Android SDK 35, and Gradle 8.11.1 or compatible.
+Requires Node.js 22.22+, npm 11, JDK 17, Android SDK 35, and Gradle 8.11.1.
 
 ```bash
 gradle -p android :app:assembleDebug
 ```
 
-The debug APK is produced at:
+Gradle runs `npm ci`, builds the existing frontend into the Android assets directory, then packages the APK.
+
+Output:
 
 `android/app/build/outputs/apk/debug/app-debug.apk`
 
-## Connect to a local model
+## Network and security
 
-Enter the OpenAI-compatible API base URL exposed by the trusted server, ending in `/v1` (for example, an Ollama-compatible endpoint), and enter the model name supported by that server.
+The Android app requires network access to reach the OpenJarvis server. HTTP is supported for trusted private networks, but HTTP traffic is not encrypted. Use HTTPS for remote or untrusted networks. Never enter an API key for a server you do not control or trust.
 
-Use HTTPS whenever possible. Plain HTTP traffic, including any bearer token, can be observed by other devices on the network. Only connect to a server you control or trust.
+The app does not request contacts, SMS, accessibility, device-admin, or background device-control permissions.
 
-## Known limitations
+## Remaining validation
 
-This is an initial buildable client foundation, not a finished assistant. Settings are not persisted; API keys remain in memory only for the current app session. Streaming, voice, local on-device inference, OpenJarvis-specific agent tools, secure credential persistence, and end-to-end device testing remain future work.
+A successful CI build verifies frontend compilation and APK packaging. A real Android install and end-to-end test against a running OpenJarvis server are still required before calling the app fully verified. Some desktop-only integrations may remain unavailable on Android until explicitly adapted.
