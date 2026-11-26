@@ -119,7 +119,7 @@ class MainActivity : ComponentActivity() {
     @Deprecated("Use the Activity Result API when migrating this legacy permission callback")
     override fun onRequestPermissionsResult(
         requestCode: Int,
-        permissions: Array<out String>,
+        permissions: Array<String>,
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
