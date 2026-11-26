@@ -24,6 +24,8 @@ The packaged WebView uses the origin `http://tauri.localhost`, which is already 
 
 ## Build
 
+Current Android app version: `0.2.0`.
+
 Requires Node.js 22.22+, npm 11, JDK 17, Android SDK 35, and Gradle 8.11.1.
 
 ```bash
